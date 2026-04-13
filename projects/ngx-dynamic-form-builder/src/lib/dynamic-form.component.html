@@ -1,0 +1,183 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)" [class]="getFormClasses()">
+  <div class="form-fields" [class]="'form-layout-' + (config.layout || 'vertical')">
+    <ng-container *ngFor="let field of config.fields">
+      <div *ngIf="!field.hidden" 
+           class="form-field" 
+           [class]="getFieldClasses(field)"
+           [style]="field.cssStyle">
+        
+        <label *ngIf="field.label" 
+               [for]="field.name"
+               [class.required]="field.required">
+          {{ field.label }}
+        </label>
+        
+        <!-- Dynamic field rendering -->
+        <ng-container [ngSwitch]="field.type">
+          
+          <!-- Text Input -->
+          <ng-container *ngSwitchCase="'text'">
+            <input [type]="field.type"
+                   [formControlName]="field.name"
+                   [id]="field.name"
+                   [placeholder]="field.placeholder || ''"
+                   [class]="field.cssClass || ''"
+                   [attr.disabled]="field.disabled ? '' : null"
+                   [attr.readonly]="field.readonly ? '' : null">
+          </ng-container>
+          
+          <!-- Email Input -->
+          <ng-container *ngSwitchCase="'email'">
+            <input type="email"
+                   [formControlName]="field.name"
+                   [id]="field.name"
+                   [placeholder]="field.placeholder || ''"
+                   [class]="field.cssClass || ''">
+          </ng-container>
+          
+          <!-- Number Input -->
+          <ng-container *ngSwitchCase="'number'">
+            <input type="number"
+                   [formControlName]="field.name"
+                   [id]="field.name"
+                   [placeholder]="field.placeholder || ''"
+                   [min]="field.min || null"
+                   [max]="field.max || null"
+                   [step]="field.step"
+                   [class]="field.cssClass || ''">
+          </ng-container>
+          
+          <!-- Textarea -->
+          <ng-container *ngSwitchCase="'textarea'">
+            <textarea [formControlName]="field.name"
+                      [id]="field.name"
+                      [placeholder]="field.placeholder || ''"
+                      [rows]="field.rows || 3"
+                      [cols]="field.cols"
+                      [class]="field.cssClass || ''">
+            </textarea>
+          </ng-container>
+          
+          <!-- Select -->
+          <ng-container *ngSwitchCase="'select'">
+            <select [formControlName]="field.name"
+                    [id]="field.name"
+                    [class]="field.cssClass || ''"
+                    [multiple]="field.multiple || false">
+              <option value="">{{ field.placeholder || 'Select...' }}</option>
+              <option *ngFor="let option of field.options" 
+                      [value]="option.value"
+                      [disabled]="option.disabled">
+                {{ option.label }}
+              </option>
+            </select>
+          </ng-container>
+          
+          <!-- Radio Group -->
+          <ng-container *ngSwitchCase="'radio'">
+            <div class="radio-group">
+              <label *ngFor="let option of field.options" class="radio-label">
+                <input type="radio"
+                       [formControlName]="field.name"
+                       [value]="option.value">
+                {{ option.label }}
+              </label>
+            </div>
+          </ng-container>
+          
+          <!-- Checkbox -->
+          <ng-container *ngSwitchCase="'checkbox'">
+            <label class="checkbox-label">
+              <input type="checkbox"
+                     [formControlName]="field.name">
+              {{ field.label }}
+            </label>
+          </ng-container>
+          
+          <!-- Switch -->
+          <ng-container *ngSwitchCase="'switch'">
+            <label class="switch">
+              <input type="checkbox"
+                     [formControlName]="field.name">
+              <span class="slider"></span>
+            </label>
+          </ng-container>
+          
+          <!-- Date Input -->
+          <ng-container *ngSwitchCase="'date'">
+            <input type="date"
+                   [formControlName]="field.name"
+                   [id]="field.name"
+                   [class]="field.cssClass || ''">
+          </ng-container>
+          
+          <!-- Color Picker -->
+          <ng-container *ngSwitchCase="'color'">
+            <input type="color"
+                   [formControlName]="field.name"
+                   [id]="field.name"
+                   [class]="field.cssClass || ''">
+          </ng-container>
+          
+          <!-- Range Slider -->
+          <ng-container *ngSwitchCase="'range'">
+            <input type="range"
+                   [formControlName]="field.name"
+                   [min]="field.min"
+                   [max]="field.max"
+                   [step]="field.step"
+                   [class]="field.cssClass || ''">
+            <span class="range-value">{{ form.get(field.name)?.value }}</span>
+          </ng-container>
+          
+          <!-- Custom Template -->
+          <ng-container *ngSwitchDefault>
+            <ng-container *ngTemplateOutlet="getFieldTemplate(field.name) || defaultTemplate; 
+                                            context: { $implicit: form.get(field.name), field: field }">
+            </ng-container>
+          </ng-container>
+          
+        </ng-container>
+        
+        <!-- Field Hint -->
+        <small *ngIf="field.hint" class="field-hint">{{ field.hint }}</small>
+        
+        <!-- Validation Errors -->
+        <div *ngIf="isFieldInvalid(field.name)" class="field-error">
+          {{ getFieldError(field.name) }}
+        </div>
+        
+        <!-- Success Indicator -->
+        <div *ngIf="isFieldValid(field.name)" class="field-success">
+          ✓
+        </div>
+        
+      </div>
+    </ng-container>
+  </div>
+  
+  <!-- Form Actions -->
+  <div class="form-actions">
+    <button *ngIf="config.submitButton"
+            type="submit"
+            [class]="config.submitButton?.cssClass || 'btn btn-primary'"
+            [disabled]="!form.valid || config.submitButton?.disabled">
+      {{ config.submitButton?.text || 'Submit' }}
+    </button>
+    
+    <button *ngIf="config.resetButton"
+            type="button"
+            [class]="config.resetButton?.cssClass || 'btn btn-secondary'"
+            (click)="onReset()">
+      {{ config.resetButton?.text || 'Reset' }}
+    </button>
+  </div>
+</form>
+
+<!-- Default Template -->
+<ng-template #defaultTemplate let-control let-field="field">
+  <input [type]="field.type || 'text'"
+         [formControl]="control"
+         [placeholder]="field.placeholder"
+         [class]="field.cssClass">
+</ng-template>
