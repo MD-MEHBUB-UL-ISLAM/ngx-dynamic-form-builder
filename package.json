@@ -1,5 +1,5 @@
 {
-  "name": "workspace",
+  "name": "@md-mehbub-ul-islam/ngx-dynamic-form-builder",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -29,5 +29,9 @@
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
   }
 }
